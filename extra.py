@@ -2,9 +2,6 @@ import time
 from datetime import datetime
 import os, sys
 from pathlib import Path
-from random import choice
-import json
-import socket
 
 log = print
 
@@ -23,7 +20,7 @@ def resource_path(relative_path):
 
 def timeCal(sec):
     if sec < 60:
-        return f"{sec} Sec"
+        return f"{int(sec)} Sec"
     elif sec < 3600:
         return f"{sec//60}:{ str(sec%60)[:2]} Mint"
     elif sec < 216000:
@@ -35,7 +32,7 @@ def timeCal(sec):
     
     
     
-def data_size_cal(size):
+def format_size(size):
     st=None
     if size < 1024:
         st=f'{size} Bytes'
@@ -71,61 +68,5 @@ def data_size_cal(size):
     return st
 
 
-def genSessionId(len_ = 50, idList= []):
-    data = "zxcvbnmasdfghjklqwertyuiop1234567890@ZXCVBNMASDFGHJKLQWERTYUIOP&&&&"
-    id_ = ""
-    for i in range(len_):
-        id_ += choice(data)
-    
-    if id_ in idList:
-        genSessionId(len_, idList)
-    else:
-        return id_
-    
-
-class DataBabse(dict):
-    def __init__(self) -> None:
-
-        self.file_name = "data/db.tube"
-        self.path = resource_path(self.file_name)
-        self.load()
-
-
-    def read(self):
-        with open(self.path, "r") as ff:
-            try:
-                return json.loads(ff.read())
-            except:
-                print("Invalid Json")
-                self.init_schema()
-
-
-    def load(self):
-        self.update(self.read())
-
-    def write(self, data):
-        with open(self.path, "w") as tf:
-            tf.write(json.dumps(data))
-
-    def commit(self):
-        self.write(self)
-
-    def init_schema(self):
-        self.schema = {
-            "downloads" : [], # downloaded files
-        }
-
-        self.write(self.schema)
-        self.load()
-
-
-def isOnline(self):
-    try:
-        s  = socket.socket()
-        s.settimeout(0.5)
-        s.connect(("pythonanywhere.com",443))
-        s.close()
-        return True
-    except:
-        return False
-    
+if __name__ == "__main__":
+    print(format_size(1024 * 1024 * 200))

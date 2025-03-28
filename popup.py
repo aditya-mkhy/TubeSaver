@@ -53,6 +53,7 @@ def get_icon(PATH):
         bmpstr, "raw", "BGRA", 0, 1
     )
 
+
     return img
 
 def custom_shape_canvas(parent : Canvas = None, width=300, height=100, rad=50, padding=3, bg='red'):
@@ -665,6 +666,7 @@ class LoadPopUp(popWind):
 
 if __name__ == "__main__":
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
+
 
     root = Tk()
     l = LoadPopUp()

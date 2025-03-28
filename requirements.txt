@@ -1,0 +1,7 @@
+mutagen
+youtube-search-python
+pillow
+requests
+pywin32
+cryptography
+yt_dlp
