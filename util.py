@@ -3,6 +3,8 @@ from datetime import datetime
 import os, sys
 from pathlib import Path
 import json
+import socket
+from random import choice
 
 log = print
 
@@ -42,6 +44,27 @@ def format_size(size):
     return f"{val} {unit}"
 
 
+def is_online():
+    try:
+        s  = socket.socket()
+        s.settimeout(0.5)
+        s.connect(("pythonanywhere.com",443))
+        s.close()
+        return True
+    except:
+        return False
+        
+def genSessionId(len_ = 50, idList= []):
+    data = "zxcvbnmasdfghjklqwertyuiop1234567890@ZXCVBNMASDFGHJKLQWERTYUIOP&&&&"
+    id_ = ""
+    for i in range(len_):
+        id_ += choice(data)
+    
+    if id_ in idList:
+        genSessionId(len_, idList)
+    else:
+        return id_
+
 class DB(dict):
     def __init__(self):
         super().__init__()
@@ -78,8 +101,10 @@ class DB(dict):
     def __setitem__(self, key, value):
         super().__setitem__(key, value)
         self.__write()
-    
 
+    def commit(self):
+        self.__write()
+    
 
 if __name__ == "__main__":
     print(format_size(1024 * 1024 * 200))

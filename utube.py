@@ -306,7 +306,7 @@ class Dtube:
 
                 time_left = f"{timeCal(eta)} left"
                 speed = format_size(speed)
-                prog_info = "(%s of  %s ,  %s)" %(format_size(downloaded) , format_size(total), speed)
+                prog_info = "(%s of  %s ,  %s/s)" %(format_size(downloaded) , format_size(total), speed)
 
 
                 status = {

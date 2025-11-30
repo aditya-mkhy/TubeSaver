@@ -1,7 +1,5 @@
 from util import resource_path, timeCal, format_size
-import os ,sys,subprocess
-from tkinter import messagebox
-
+import os , sys, subprocess
 
 # path = resource_path("vcruntime140_1.dll")
 
@@ -15,9 +13,8 @@ from tkinter import messagebox
 #     os.rename(dll, ch_dll)
 #     os.rename(dll2, ch_dll2)
 
-
-from tkinter import *
 from tkinter import messagebox
+from tkinter import *
 from json import loads, dump
 from requests import get as requests_get
 import os , sys, subprocess
@@ -33,37 +30,39 @@ from tkinter.ttk import Style as ttk_Style,Progressbar, Scale as ttk_Scale
 from webbrowser import open as open_file
 
 from mutagen.mp3 import MP3
-from mutagen.id3 import ID3,TIT2,TLEN,TCON,TPE1,TALB,TDES,TPUB,WPUB,TDRL,APIC
+from mutagen.id3 import ID3, TIT2, TLEN, TCON, TPE1, TALB, TDES, TPUB, WPUB, TDRL, APIC
 import io as io_import
-from cryptography.fernet import Fernet
-from threading import Thread, Timer
+from threading import Thread
 from time import time, sleep, ctime
 from popup import DownloadsInfoWin, LoadPopUp, AnimeleButton, AnimeleLabel
-from login import LoginPage, genSessionId
-
 from utube import get_video_info, Dtube, get_thumbnail
 from tkinter import font
 
-##youtube_dl\downloader\common.py  nopart  == True
+from util import DB, is_online, genSessionId
 
 
 class YouTube_Download():
 
-    def __init__(self,parent_window: Tk, loginwindow, root):
+    def __init__(self, parent_window: Tk):
         self.width = 1200
         self.height = 800
-        self.loginwindow = loginwindow
-        self.parent=parent_window
-        self.root = root
-        self.video_image_list=[]
-        self.video_id=None
-        self.stop_serch_value =False
+
+        # leight weigh database..
+        self.db = DB()
+        self.parent = parent_window
+        self.root = parent_window
+
+        self.video_image_list = []
+        self.video_id = None
+        self.stop_serch_value = False
         self.stop_config_result = False
-        self.entry_var=StringVar()
-        self.functools_partial=functools_partial
-        self.video=None
-        self.show_down_status_frame=False
-        self.version = "9.0.0"
+
+        self.entry_var = StringVar()
+        self.functools_partial = functools_partial
+        self.video = None
+        self.show_down_status_frame = False
+
+        self.version = "10.3.0"
         self.thumbnails = {}
         self.thumbnails_icon = {}
         self.infoFrameForUpdate = []
@@ -85,9 +84,9 @@ class YouTube_Download():
         self.entry_wgt.bind("<FocusOut>",self.focus_out_entry_widget)
 
 
-        self.download_image=PhotoImage(file=resource_path('data/download.png'),master=self.parent)
+        self.download_image = PhotoImage(file=resource_path('data/download.png'),master=self.parent)
 
-        self.download_butn=AnimeleButton(self.label, bg='grey20', bd=0,
+        self.download_butn = AnimeleButton(self.label, bg='grey20', bd=0,
                                   highlightbackground='grey20', activebackground='grey20',
                                   command=self.show_pop_win, cursor="hand2")
         self.download_butn.pack(side='left',padx=30)
@@ -101,11 +100,11 @@ class YouTube_Download():
         self.back = "#0f0f0f"
 
  
-        self.canvas =Canvas(self.root, bg=self.back, bd=0, closeenough=0, highlightthickness=0, confine=1)
+        self.canvas = Canvas(self.root, bg=self.back, bd=0, closeenough=0, highlightthickness=0, confine=1)
         self.canvas.pack(side="top", fill="both", expand=True, anchor="nw")
         
 
-        self.scrollable_frame =Frame(self.canvas, bg=self.back, pady=8)
+        self.scrollable_frame = Frame(self.canvas, bg=self.back, pady=8)
         self.parent.bind("<Configure>", self.configAll)
 
 
@@ -140,7 +139,9 @@ class YouTube_Download():
         gif_path = resource_path("data/load.gif")
         self.load_prog = LoadPopUp(gif_path, self.parent)
         self.load_prog.set_dely(20)
-        Thread(target=self.on_start_search, daemon=True).start()
+
+        # start search
+        Thread(target=self.on_start_search, daemon = True).start()
 
         self.down_process_list = []
         self.no_internet_animation_is_active = False
@@ -162,6 +163,7 @@ class YouTube_Download():
         else:
             print("This is a enter event")
 
+
     def stop_down_animation(self, idd=None):
         print(f"idd==> {idd}")
         if idd:
@@ -178,9 +180,7 @@ class YouTube_Download():
 
     def clear_download_history(self):
         try:
-            alldata = self.loginwindow.getData()
-            alldata["downloads"] = []
-            self.loginwindow.writeData(alldata)
+            self.db['down'] = []
             return True
         except:
             return False
@@ -193,6 +193,7 @@ class YouTube_Download():
         self.no_internet_animation_is_active = True
         self.no_connection_anime.pack(side="top", fill="both", expand=True, padx=280, pady=50)
         
+
     def config_internet_animation(self):
         if self.no_internet_animation_is_active:
             x = (self.root.winfo_width()//2) -300
@@ -203,9 +204,8 @@ class YouTube_Download():
                 pass
 
 
-
     def on_start_search(self):
-        self.search("Songs")
+        self.search("hum dum")
         self.history()
 
 
@@ -226,103 +226,107 @@ class YouTube_Download():
     def dwn_scroll_window(self,event):
         self.dwn_canvas.yview("scroll",-1*int(event.delta/120),"units")
 
-    def DownloadPlaylist(self, video_name):
-        video_name=video_name.split("---")
-        video_id =video_name[0]
-        print("DownlaodingPlayList===> ",video_id)
-        try:
-            quality=video_name[1]
-            if quality == "none":
-                quality = None
+    # def DownloadPlaylist(self, video_name):
+    #     video_name=video_name.split("---")
+    #     video_id =video_name[0]
+    #     print("DownlaodingPlayList===> ",video_id)
+    #     try:
+    #         quality=video_name[1]
+    #         if quality == "none":
+    #             quality = None
 
-        except:
-            quality=None
-        try:
-            downList=loads(video_name[2])
-            print("DownloadList====>",downList
-            )
-        except:
-            downList=[]
-        print("video_id==>",video_id)
-        print("quality==>",quality)
-        print("downList==>",downList)
-        try:
-            Plist=Playlist(video_id)
-        except Exception as e:
-            if not self.loginwindow.isOnline():
-                messagebox.showinfo("YouTube", "     Computer not connected. Make sure your computer has an\n     active Internet Connection")
-            else:
-                messagebox.showerror("YouTube Error 33", f"     {e}")
-            return 0
+    #     except:
+    #         quality=None
+    #     try:
+    #         downList=loads(video_name[2])
+    #         print("DownloadList====>",downList
+    #         )
+    #     except:
+    #         downList=[]
+    #     print("video_id==>",video_id)
+    #     print("quality==>",quality)
+    #     print("downList==>",downList)
+    #     try:
+    #         Plist= Playlist(video_id)
+    #     except Exception as e:
+    #         if not self.loginwindow.isOnline():
+    #             messagebox.showinfo("YouTube", "     Computer not connected. Make sure your computer has an\n     active Internet Connection")
+    #         else:
+    #             messagebox.showerror("YouTube Error 33", f"     {e}")
+    #         return 0
         
-        notInc = '<>:"/\\|?*'+"'"
-        try:
-            dirname = ""
-            for w in Plist.title:
-                if w not in notInc:
-                    dirname+=w
-            dirname+="/"
-        except:
-            dirname = ""
+    #     notInc = '<>:"/\\|?*'+"'"
+    #     try:
+    #         dirname = ""
+    #         for w in Plist.title:
+    #             if w not in notInc:
+    #                 dirname+=w
+    #         dirname+="/"
+    #     except:
+    #         dirname = ""
 
-        ddir=str(Path.home())+f'\\Videos/{dirname}'
-        if not os.path.exists(ddir):
-            try:
-                os.mkdir(ddir)
-            except:
-                print("Error in creating direcory... ")
-                ddir=str(Path.home())+f'\\Videos/'
+    #     ddir=str(Path.home())+f'\\Videos/{dirname}'
+    #     if not os.path.exists(ddir):
+    #         try:
+    #             os.mkdir(ddir)
+    #         except:
+    #             print("Error in creating direcory... ")
+    #             ddir=str(Path.home())+f'\\Videos/'
 
-        print("Total Viodes ==> ",len(Plist.video_urls))
+    #     print("Total Viodes ==> ",len(Plist.video_urls))
 
-        count=0
-        for urls in Plist.video_urls:
-            print("Urls======> ",urls)
-            count+=1
-            if count in downList or downList == []:
-                self.video = YouTube(urls)#, use_oauth=True, allow_oauth_cache=True)
-                itag=None
+    #     count=0
+    #     for urls in Plist.video_urls:
+    #         print("Urls======> ",urls)
+    #         count+=1
+    #         if count in downList or downList == []:
+    #             self.video = YouTube(urls)#, use_oauth=True, allow_oauth_cache=True)
+    #             itag=None
 
-                if quality==None:
-                    vstream=self.video.streams.filter(progressive=True , file_extension='mp4')
-                    l = len(vstream)
-                    if l > 0:
-                        itag = vstream[l-1].itag
-                    else:
-                        vstream=self.video.streams.filter(adaptive=True, only_video=True, file_extension='mp4')[0]
-                        itag=vstream.itag
+    #             if quality==None:
+    #                 vstream=self.video.streams.filter(progressive=True , file_extension='mp4')
+    #                 l = len(vstream)
+    #                 if l > 0:
+    #                     itag = vstream[l-1].itag
+    #                 else:
+    #                     vstream=self.video.streams.filter(adaptive=True, only_video=True, file_extension='mp4')[0]
+    #                     itag=vstream.itag
 
-                elif quality=="high":
-                    vstream=self.video.streams.filter(adaptive=True, only_video=True, file_extension='mp4')[0]
-                    print("vstream ==> ", vstream)
-                    itag=vstream.itag
-                else:
-                    for vstream in self.video.streams.filter(adaptive=True,only_video=True,file_extension='mp4'):
-                        if quality in vstream.resolution:
-                            itag=vstream.itag
-                            print("Desired resolution fouund")
+    #             elif quality=="high":
+    #                 vstream=self.video.streams.filter(adaptive=True, only_video=True, file_extension='mp4')[0]
+    #                 print("vstream ==> ", vstream)
+    #                 itag=vstream.itag
+    #             else:
+    #                 for vstream in self.video.streams.filter(adaptive=True,only_video=True,file_extension='mp4'):
+    #                     if quality in vstream.resolution:
+    #                         itag=vstream.itag
+    #                         print("Desired resolution fouund")
                              
-                        else:
-                            print("Desired Vidoe Resolution is Not Found \n Downloading Highest quality")
-                            vstream=self.video.streams.filter(adaptive=True,only_video=True,file_extension='mp4')[0]
-                            itag=vstream.itag
+    #                     else:
+    #                         print("Desired Vidoe Resolution is Not Found \n Downloading Highest quality")
+    #                         vstream=self.video.streams.filter(adaptive=True,only_video=True,file_extension='mp4')[0]
+    #                         itag=vstream.itag
 
-                if itag != None:
-                    video_stream=self.video
-                    widget=None
-                    try:
-                        print("Downloading_Video==>",vstream.default_filename)
-                    except Exception as e:
-                        print("Error[990]",e)
-                    self.try_download_selected_video(itag,video_stream,widget, ddir)
-            print("\n-------------------------------------------------------\n")
+    #             if itag != None:
+    #                 video_stream=self.video
+    #                 widget=None
+    #                 try:
+    #                     print("Downloading_Video==>",vstream.default_filename)
+    #                 except Exception as e:
+    #                     print("Error[990]",e)
+    #                 self.try_download_selected_video(itag,video_stream,widget, ddir)
+    #         print("\n-------------------------------------------------------\n")
         
+
+
     def search_entry(self, event=None):
-        video_name=self.entry_var.get()
+        video_name = self.entry_var.get()
         if "www.youtube.com/playlist?" in  video_name:
-            t=Thread(target=self.DownloadPlaylist,args=(video_name,) , daemon=True)
-            t.start()
-            #url|||resulution|||[1,2,3]
+            print("Not supporetd...")
+            # t = Thread(target=self.DownloadPlaylist, args=(video_name,), daemon=True)
+            # t.start()
+            return
+
         elif "www.youtube.com/watch?v=" in video_name:
             print("Video link found... Downloding....")
             t = Thread(target=self.call_download_menu, args=(event, None, video_name))
@@ -349,9 +353,10 @@ class YouTube_Download():
         self.popUpWin.pop(x+x1, y+y1)             
 
 
-    def search(self, video_name):
+    def search(self, video_name: str):
+        print(f"Search video --> {video_name}")
         try:
-            self.video_image_list=[]
+            self.video_image_list = []
             self.stop_config_result = randint(100, 10000000)
             
             self.entry_wgt.unbind('<Return>')
@@ -367,7 +372,7 @@ class YouTube_Download():
             th.start()
             
         except Exception as e:
-            if not self.loginwindow.isOnline():
+            if not is_online():
                 if not self.no_internet_animation_is_active:
                     self.no_internet_animation()
                 messagebox.showinfo("YouTube", "     Computer not connected. Make sure your computer has an\n     active Internet Connection")
@@ -379,22 +384,20 @@ class YouTube_Download():
             self.entry_wgt.bind('<Return>',self.search_entry)
 
     def addHistory(self, file: str):
-        # print(f"File=========> {file}")
         prog = self.popUpWin.add_prog(file)
         prog.download_complete()
-        # text='Download complete                ('+("%s" % ctime(os.path.getmtime(file)))+')'
 
 
     def history(self):
         sleep(1)
         try:
-            data = self.loginwindow.getData()["downloads"]
+            data = self.db.get("down")
             for file in data:
                 self.addHistory(file)
                
         except Exception as e:
-            print("00d", e)
-        self.loginwindow.checkVersion()
+            print("Error [History] => ", e)
+
 
     def configure_search_result(self, idd):
         self.show_load_pop()
@@ -408,10 +411,9 @@ class YouTube_Download():
         for v in result['result']:
             if self.stop_config_result != idd:
                 break
-            t = Thread(target=self.con, args=(v, idd) , daemon=True)
+            t = Thread(target=self.config, args=(v, idd) , daemon=True)
             t.start()
             thList.append(t)
-            # self.con(v, idd)
         
         for th in thList:
             th.join()
@@ -432,7 +434,7 @@ class YouTube_Download():
             widget.config(width=self.root.winfo_width() - 390)
 
 
-    def con(self, v, idd):
+    def config(self, v, idd):
         try:
             thumbnails=(v['thumbnails'][0])['url']
             title_txt=str(v['title'])
@@ -801,27 +803,6 @@ class YouTube_Download():
 
         def pause_command(event=None):
             nonlocal prog, stream_status, widget, video_id, video_stream        
-            # pause_download.grid_remove()            
-            # resume_download.grid(row=0,column=0,ipady=5,ipadx=5)
-            # stream_status=False
-            # resume_download.config(command=self.functools_partial(self.resume_command,video_id,
-                                                                #   video_stream,widget))
-
-        
-
-        def progress(status : dict):
-            # status = {
-            #         "status" : "downloading",
-            #         "filename" : filename,
-            #         "downloaded" : downloaded,
-            #         "eta" : time_left,
-            #         "progress" : prog_info,
-            #     }
-            if status['status'] == 'downloading':
-                
-                prog.update(int(status['downloaded']), status['eta'], status['progress'])
-
-
 
 
         if video_id == "mp3":
@@ -923,10 +904,8 @@ class YouTube_Download():
                     audio = MP3(file_path, ID3=ID3)
                     audio.tags.add(TIT2(encoding=3, text=str(title)))
                     audio.tags.add(TCON(encoding=3, text=str("Music")))
-                    audio.tags.add(TPE1(encoding=3, text=str("Aditya Mukhiya")))
-                    audio.tags.add(TALB(encoding=3, text=str("M_A_Music_Player__ID: ")))#Album
-                    audio.tags.add(TPUB(encoding=3, text=str("Aditya Mukhiya")))
-                    audio.tags.add(WPUB(encoding=3, text="Aditya_Mukhiya_M_A_Music_Player"))
+                    audio.tags.add(TPUB(encoding=3, text=str("Aditya")))
+              
                     # adding ID3 tag if it is not present
                     try:
                         audio.add_tags()
@@ -993,11 +972,9 @@ class YouTube_Download():
             text= f'Download complete ({format_size(total_size)})'
             prog.update(timest=text)
 
-            alldata = self.loginwindow.getData()
-            data = alldata["downloads"]
-            data.append(file_path)
-            alldata["downloads"] = data
-            self.loginwindow.writeData(alldata)
+            down = self.db.get("down")
+            down.append(file_path)
+            self.db['down'] = down
             self.download_butn.stop()
 
         
@@ -1035,9 +1012,6 @@ class YouTube_Download():
                     root.update()
             except:
                 pass
-
-        
-
 
 
     def add_audio_to_video(self, video, audio):
@@ -1110,24 +1084,16 @@ def dark_title_bar(window):
 
 
 ctypes.windll.shcore.SetProcessDpiAwareness(True)
-loginwindow = LoginPage()
-
-
-if loginwindow.authenticate():
-    print("Authencated.....")
-else:
-    sys.exit(1)
 
 root = Tk()
 dark_title_bar(root)
+
 root.tk.call('tk', 'scaling', 1.0)
 root.title('Tube Downloader')
+
 root.geometry(f"{1200}x{800}+{int((root.winfo_screenwidth()/2)-(1100/2))}+{int((root.winfo_screenheight()/2) - (880/2))}")
+
 phototitle = PhotoImage(file =resource_path("data/play3.png"),master=root)
 root.iconphoto(True, phototitle)
-youtube=YouTube_Download(root, loginwindow, root)
-root.bind("<Control-h>",loginwindow.autor)
-# root.bind("<Control-l>",logout)
-# root.bind("<Control-Shift-f>",feedback )
-# root.bind("<Control-Shift-F>",feedback )
+youtube=YouTube_Download(root)
 root.mainloop()
