@@ -15,7 +15,7 @@ from time import sleep
 import ctypes
 from threading import Thread, Timer
 from tkinter.filedialog import   askdirectory 
-from extra import resource_path, print
+from util import resource_path, print
 from functools import partial as functools_partial
 import subprocess
 

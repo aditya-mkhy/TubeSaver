@@ -1,4 +1,4 @@
-from extra import resource_path, timeCal, format_size
+from util import resource_path, timeCal, format_size
 import os ,sys,subprocess
 from tkinter import messagebox
 
