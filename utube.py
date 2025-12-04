@@ -133,7 +133,7 @@ class Dtube:
 
 
     def make_title_path(self, title = None):
-        not_include = '<>:"/\\|?*'+"'"
+        not_include = ' <>:"/\\|?*'+"'"
         title_path = ""
 
         if title == None:
@@ -141,7 +141,8 @@ class Dtube:
 
         for w in title:
             if w in not_include:
-                title_path += " "
+                if title_path[-1:] != " ":
+                    title_path += " "
             else:
                 title_path += w
 
@@ -352,7 +353,7 @@ if __name__ == "__main__":
     url = "https://www.youtube.com/watch?v=4AtnNKglCY0"
     # url  = "https://www.youtube.com/playlist?list=PLfqMhTWNBTe137I_EPQd34TsgV6IO55pt"#shradha
 
-    title = "south movies 2"
+    title = "south   movies 2"
     tube  = Dtube(title=title)
 
     # tube.only_audio = True
@@ -366,10 +367,10 @@ if __name__ == "__main__":
     # # while True:
     #     # url = input("url -> ")
     # url = "https://www.youtube.com/watch?v=kcvDPUZer7I"
-    # format_id = 616
-    info = tube.download(url=url)
-    # url = 
-    print(info)
+    # # format_id = 616
+    # info = tube.download(url=url)
+    # # url = 
+    # print(info)
     # info , title = get_video_info(url = url)
     # print("title ==> ", title)
     # print(info)
