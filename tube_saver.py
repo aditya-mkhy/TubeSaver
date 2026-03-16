@@ -168,9 +168,7 @@ class YouTube_Download:
         # start search on open
         Thread(target=self.on_start_search, daemon=True).start()
 
-    # =====================================================================
     # UI helpers / animations / history
-    # =====================================================================
 
     def start_down_animation(self, idd=None):
         print(f"idd==> {idd}")
@@ -299,43 +297,43 @@ class YouTube_Download:
 
     def search(self, video_name: str):
         print(f"Search video --> {video_name}")
+        # try:
+        self.video_image_list = []
+        self.stop_config_result = randint(100, 10000000)
+
+        self.entry_wgt.unbind("<Return>")
+        self.entry_wgt.config(insertontime=0)
+
+        self.search_result_youtube = VideosSearch(video_name, region="IN")
+        self.no_internet_animation_is_active = False
+
         try:
-            self.video_image_list = []
-            self.stop_config_result = randint(100, 10000000)
-
-            self.entry_wgt.unbind("<Return>")
-            self.entry_wgt.config(insertontime=0)
-
-            self.search_result_youtube = VideosSearch(video_name, region="IN")
-            self.no_internet_animation_is_active = False
-
-            try:
-                self.clear_win()
-            except Exception as e:
-                print(f"Error in cleaning window: {e}")
-
-            th = Thread(
-                target=self.configure_search_result,
-                args=(self.stop_config_result,),
-                daemon=True,
-            )
-            th.start()
-
+            self.clear_win()
         except Exception as e:
-            if not is_online():
-                if not self.no_internet_animation_is_active:
-                    self.no_internet_animation()
-                messagebox.showinfo(
-                    "YouTube",
-                    "     Computer not connected. Make sure your computer has an\n"
-                    "     active Internet Connection",
-                )
-            else:
-                messagebox.showerror("YouTube Error 44", f"     {e}")
+            print(f"Error in cleaning window: {e}")
 
-        finally:
-            self.entry_wgt.config(insertontime=300)
-            self.entry_wgt.bind("<Return>", self.search_entry)
+        th = Thread(
+            target=self.configure_search_result,
+            args=(self.stop_config_result,),
+            daemon=True,
+        )
+        th.start()
+
+        # except Exception as e:
+        #     if not is_online():
+        #         if not self.no_internet_animation_is_active:
+        #             self.no_internet_animation()
+        #         messagebox.showinfo(
+        #             "YouTube",
+        #             "     Computer not connected. Make sure your computer has an\n"
+        #             "     active Internet Connection",
+        #         )
+        #     else:
+        #         messagebox.showerror("YouTube Error 44", f"     {e}")
+
+        # finally:
+        #     self.entry_wgt.config(insertontime=300)
+        #     self.entry_wgt.bind("<Return>", self.search_entry)
 
     def configure_search_result(self, idd):
         self.show_load_pop()

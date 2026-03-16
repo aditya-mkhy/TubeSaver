@@ -1,8 +1,8 @@
 mutagen
-youtube-search-python
 pillow
 requests
 pywin32
 cryptography
 yt_dlp
 pytube
+git+https://github.com/aditya-mkhy/youtube-search-python.git

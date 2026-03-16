@@ -4,9 +4,13 @@ import os
 from pathlib import Path
 import yt_dlp
 import threading
-from util import format_size, timeCal
+from util import format_size, timeCal, FFMPEG_DIR
 import json
 
+class NoLogger:
+    def debug(self, msg): pass
+    def warning(self, msg): pass
+    def error(self, msg): pass
 
 def get_thumbnail(data: dict):
     thumbnails = data.get("thumbnails", [])
@@ -171,8 +175,12 @@ class Dtube:
             'progress_hooks': [self.progress_hook],
             'quiet': True,                       # Silence yt_dlp output
             'no_warnings': True, 
+            "logger": NoLogger(),
             'age_limit' : 25,
             'outtmpl': f'{self.down_path}\\{count}{self.make_title_path()}.%(ext)s',  # Output file name and path
+            'ffmpeg_location': FFMPEG_DIR,
+            # hide ffmpeg conversion messages
+            "postprocessor_args": ['-hide_banner', '-loglevel', 'error'],
             'postprocessors': [{
                 'key': 'FFmpegVideoConvertor',
                 'preferedformat': 'mp4',  # Convert the final file to MP4 if needed

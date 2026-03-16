@@ -21,6 +21,8 @@ def resource_path(relative_path):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.join(os.path.abspath("."), relative_path)
 
+FFMPEG_DIR = resource_path("data")
+
 def timeCal(sec):
     if sec < 60:
         return f"{int(sec)} Sec"
